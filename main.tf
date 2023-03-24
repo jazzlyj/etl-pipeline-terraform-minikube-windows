@@ -54,7 +54,7 @@ resource "kubernetes_persistent_volume" "etlpv" {
           match_expressions {
             key = "kubernetes.io/hostname"
             operator = "In"
-            values = [ "nodename" ]
+            values = [ "LAPTOP-OKHKBJP0" ]
           }
         }
       }
