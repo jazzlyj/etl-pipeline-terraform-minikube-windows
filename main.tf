@@ -30,7 +30,7 @@ resource "kubernetes_persistent_volume_claim_v1" "etlpvc" {
         storage = "1Gi"
       }
     }
-    volume_name = "${kubernetes_persistent_volume.etlpv.metadata.0.name}"
+    volume_name = "${kubernetes_persistent_volume_v1.etlpv.metadata.0.name}"
   }
   wait_until_bound = false
 }
