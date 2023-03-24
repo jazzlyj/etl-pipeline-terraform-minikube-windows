@@ -19,7 +19,7 @@ resource "kubernetes_secret" "secret1" {
       }
     }
 
-resource "kubernetes_persistent_volume_claim" "etlpvc" {
+resource "kubernetes_persistent_volume_claim_v1" "etlpvc" {
   metadata {
     name = "etlpvc"
   }
@@ -35,7 +35,7 @@ resource "kubernetes_persistent_volume_claim" "etlpvc" {
   wait_until_bound = false
 }
 
-resource "kubernetes_persistent_volume" "etlpv" {
+resource "kubernetes_persistent_volume_v1" "etlpv" {
   metadata {
     name = "etlpv"
   }
