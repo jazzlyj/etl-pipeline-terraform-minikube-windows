@@ -32,6 +32,7 @@ resource "kubernetes_persistent_volume_claim" "etlpvc" {
     }
     volume_name = "${kubernetes_persistent_volume.etlpv.metadata.0.name}"
   }
+  wait_until_bound = false
 }
 
 resource "kubernetes_persistent_volume" "etlpv" {
