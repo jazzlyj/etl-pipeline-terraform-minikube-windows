@@ -27,7 +27,7 @@ resource "kubernetes_persistent_volume_claim" "etlpvc" {
     access_modes = ["ReadWriteMany"]
     resources {
       requests = {
-        storage = "2Gi"
+        storage = "1Gi"
       }
     }
     volume_name = "${kubernetes_persistent_volume.etlpv.metadata.0.name}"
@@ -54,7 +54,7 @@ resource "kubernetes_persistent_volume" "etlpv" {
           match_expressions {
             key = "kubernetes.io/hostname"
             operator = "In"
-            values = [ "LAPTOP-OKHKBJP0" ]
+            values = [ "minikube" ]
           }
         }
       }
@@ -66,7 +66,7 @@ resource "kubernetes_persistent_volume" "etlpv" {
 module "postgresql" {
   source        = "ballj/postgresql/kubernetes"
   version       = "~> 1.2"
-  namespace     = "test"
+  namespace     = "etl"
   object_prefix = "db"
   name          = "db"
   image_name    = "bitnami/postgresql"
