@@ -44,22 +44,23 @@ resource "kubernetes_persistent_volume_v1" "etlpv" {
       storage = "1Gi"
     }
     access_modes = ["ReadWriteMany"]
-    persistent_volume_source {
-      local {
-        path = "/var/lib/postgresql/data"
-      }
-    }
-    node_affinity {
-      required {
-        node_selector_term {
-          match_expressions {
-            key = "kubernetes.io/hostname"
-            operator = "In"
-            values = [ "minikube" ]
-          }
-        }
-      }
-    }
+    storage_class_name = "local-path"
+    # persistent_volume_source {
+    #   local {
+    #     path = "/var/lib/postgresql/data"
+    #   }
+    # }
+    # node_affinity {
+    #   required {
+    #     node_selector_term {
+    #       match_expressions {
+    #         key = "kubernetes.io/hostname"
+    #         operator = "In"
+    #         values = [ "minikube" ]
+    #       }
+    #     }
+    #   }
+    # }
   }
 }
 
