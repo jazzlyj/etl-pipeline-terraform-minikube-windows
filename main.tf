@@ -1,62 +1,51 @@
-resource "kubernetes_namespace" "etl" {
+resource "kubernetes_namespace_v1" "etl-dev" {
     metadata {
-        name = "etl"
+        name    = "etl-dev"
+        labels  = {
+          "app" = "etl"
+        }
     }
 }
 
-resource "kubernetes_secret" "secret1" {
-
+resource "kubernetes_secret_v1" "etl-secret" {
       metadata {
-        name      = "pg-secret"
-        namespace = kubernetes_namespace.etl.metadata.0.name
-        labels = {
-          "sensitive" = "true"
-          "app"       = "etl"
+        name               = "etl-secret"
+        namespace          = kubernetes_namespace_v1.etl-dev.metadata.0.name
+        labels             = {
+          "sensitive"      = "true"
+          "app"            = "etl"
         }
       }
       data = {
-        "credentials.txt" = file("${path.cwd}/credentials.txt")
+        "credentials.txt"  = file("${path.cwd}/credentials.txt")
       }
     }
 
-resource "kubernetes_persistent_volume_claim_v1" "etlpvc" {
+resource "kubernetes_persistent_volume_v1" "etl-db-pv-volume" {
   metadata {
-    name = "etlpvc"
+    name               = "etl-db-pv-volume"
+    labels             = {
+      "app"            = "etl"
+    }
   }
   spec {
-    access_modes = ["ReadWriteMany"]
-    resources {
-      requests = {
-        storage = "1Gi"
-      }
+    capacity           = {
+      storage          = "2Gi"
     }
-    volume_name = "${kubernetes_persistent_volume_v1.etlpv.metadata.0.name}"
-  }
-  wait_until_bound = false
-}
-
-resource "kubernetes_persistent_volume_v1" "etlpv" {
-  metadata {
-    name = "etlpv"
-  }
-  spec {
-    capacity = {
-      storage = "1Gi"
-    }
-    access_modes = ["ReadWriteMany"]
-    storage_class_name = "local-path"
+    access_modes       = ["ReadWriteOnce"]
+    storage_class_name = "manual"
     persistent_volume_source {
       local {
-        path = "/var/lib/postgresql/data"
+        path           = "/data/etl-db-pv-volume/"
       }
     }
     node_affinity {
       required {
         node_selector_term {
           match_expressions {
-            key = "kubernetes.io/hostname"
-            operator = "In"
-            values = [ "minikube" ]
+            key        = "kubernetes.io/hostname"
+            operator   = "In"
+            values     = [ "minikube" ]
           }
         }
       }
@@ -64,29 +53,49 @@ resource "kubernetes_persistent_volume_v1" "etlpv" {
   }
 }
 
-
-module "postgresql" {
-  source        = "ballj/postgresql/kubernetes"
-  version       = "~> 1.2"
-  namespace     = "etl"
-  object_prefix = "db"
-  name          = "db"
-  image_name    = "bitnami/postgresql"
-  image_tag     = "14.7.0-7"
-  pvc_name      = "etlpvc"
-  env_secret    = [
-    {
-      name   = "POSTGRES_USER"
-      secret = "pg-secret"
-      key    = "DBUser"
-    },
-    {
-      name   = "POSTGRES_PASSWORD"
-      secret = "pg-secret"
-      key    = "DBPassword"
-    },
-  ]
-  labels        = {
-    "app.kubernetes.io/part-of" = "etlapp"
+resource "kubernetes_persistent_volume_claim_v1" "etl-db-pv-claim" {
+  metadata {
+    name               = "etl-db-pv-claim"
+    namespace          = kubernetes_namespace_v1.etl-dev.metadata.0.name
+    labels             = {
+      "app"            = "etl"
+    }
+  }
+  spec {
+    access_modes       = ["ReadWriteOnce"]
+    storage_class_name = "manual"
+    resources {
+      requests         = {
+        storage        = "1Gi"
+      }
+    }
   }
 }
+
+
+
+# module "postgresql" {
+#   source        = "ballj/postgresql/kubernetes"
+#   version       = "~> 1.2"
+#   namespace     = "etl"
+#   object_prefix = "db"
+#   name          = "db"
+#   image_name    = "bitnami/postgresql"
+#   image_tag     = "14.7.0-7"
+#   pvc_name      = "etl-db-pv-claim"
+#   env_secret    = [
+#     {
+#       name   = "POSTGRES_USER"
+#       secret = "etl-secret"
+#       key    = "DBUser"
+#     },
+#     {
+#       name   = "POSTGRES_PASSWORD"
+#       secret = "etl-secret"
+#       key    = "DBPassword"
+#     },
+#   ]
+#   labels        = {
+#     "app.kubernetes.io/part-of" = "etlapp"
+#   }
+# }
