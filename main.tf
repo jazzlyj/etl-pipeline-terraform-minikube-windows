@@ -89,20 +89,49 @@ resource "kubernetes_pod_v1" "postgres" {
         name  = "PGDATA"
         value = "/var/lib/postgresql/data"
       }
+      # works but seems to point directly to the credentials file
+      # env_from {
+      #   secret_ref {
+      #     name = kubernetes_secret_v1.etl-secret.metadata.0.name
+      #   }
+      # }
+      #
+      env {
+        name  = "POSTGRES_DB"
+        value_from {
+          secret_key_ref {
+            name = kubernetes_secret_v1.etl-secret.metadata.0.name
+            key = "DBName"
+          }
+        }
+      }
       env {
         name  = "POSTGRES_USER"
-        value = "postgres"
-      }
+        value_from {
+          secret_key_ref {
+            name = kubernetes_secret_v1.etl-secret.metadata.0.name
+            key = "DBUser"
+          }
+        }
+      }  
       env {
         name  = "POSTGRES_PASSWORD"
-        value = "postgres"
-      }
+        value_from {
+          secret_key_ref {
+            name = kubernetes_secret_v1.etl-secret.metadata.0.name
+            key = "DBPassword"
+          }
+        }
+      }  
       port {
         container_port = 5432
       }
-      # volume_mount {
-      #   name       = "etl-db-data"
-      #   mount_path = "/data/etl-db-pv-volume"
+      # lifecycle {
+      #   post_start {
+      #     exec {
+      #       command = ["/bin/sh","-c","sleep 20 && PGPASSWORD=$POSTGRES_PASSWORD psql -w -d $POSTGRES_DB -U $POSTGRES_USER -c 'CREATE TABLE IF NOT EXISTS gendercounts (id SERIAL PRIMARY KEY,gender TEXT, count INT4);'"]
+      #     }
+      #   }
       # }
     }
     volume {
