@@ -73,6 +73,54 @@ resource "kubernetes_persistent_volume_claim_v1" "etl-db-pv-claim" {
 }
 
 
+resource "kubernetes_pod_v1" "postgres" {
+  metadata {
+    name       = "etl-db"
+    namespace  = kubernetes_namespace_v1.etl-dev.metadata.0.name
+    labels {
+        app = "etl"
+    }
+  }
+
+  spec {
+    container {
+      image = "postgres/postgres:alpine"
+      name  = "db"
+
+      env {
+        name  = "POSTGRES_USER"
+        value = "postgres"
+      }
+
+      env {
+        name  = "POSTGRES_PASSWORD"
+        value = "postgres"
+      }
+
+      port {
+        container_port = 5432
+      }
+    }
+  }
+}
+
+# resource "kubernetes_service" "db-service" {
+#   metadata {
+#     name = "db-service"
+#   }
+#   spec {
+#     selector = {
+#       app = "${kubernetes_pod_v1.postgres.metadata.0.labels.app}"
+#     }
+#     session_affinity = "ClientIP"
+#     port {
+#       port        = 5432
+#       target_port = 5432
+#     }
+#   }
+# }
+
+
 
 # module "postgresql" {
 #   source        = "ballj/postgresql/kubernetes"
