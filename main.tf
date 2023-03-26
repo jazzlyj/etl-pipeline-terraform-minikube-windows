@@ -86,6 +86,10 @@ resource "kubernetes_pod_v1" "postgres" {
       image = "postgres"
       name  = "db"
       env {
+        name  = "PGDATA"
+        value = "/var/lib/postgresql/data"
+      }
+      env {
         name  = "POSTGRES_USER"
         value = "postgres"
       }
@@ -95,6 +99,16 @@ resource "kubernetes_pod_v1" "postgres" {
       }
       port {
         container_port = 5432
+      }
+      # volume_mount {
+      #   name       = "etl-db-data"
+      #   mount_path = "/data/etl-db-pv-volume"
+      # }
+    }
+    volume {
+      name = "etl-db-data"
+      persistent_volume_claim {
+        claim_name = kubernetes_persistent_volume_claim_v1.etl-db-pv-claim.metadata.0.name
       }
     }
   }
