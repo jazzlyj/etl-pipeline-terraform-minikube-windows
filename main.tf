@@ -16,10 +16,18 @@ resource "kubernetes_secret_v1" "etl-secret" {
           "app"            = "etl"
         }
       }
-      data = {
-        "credentials.txt"  = file("${path.cwd}/credentials.txt")
+      binary_data = {
+        "DBHost"     = ""
+        "DBUser"     = ""
+        "DBPassword" = ""
+        "DBSchema"   = ""
+        "DBName"     = ""
       }
+      # data = {
+      #   "credentials.txt"  = file("${path.cwd}/credentials.txt")
+      # }
     }
+
 
 resource "kubernetes_persistent_volume_v1" "etl-db-pv-volume" {
   metadata {
@@ -100,7 +108,7 @@ resource "kubernetes_pod_v1" "postgres" {
         name  = "POSTGRES_DB"
         value_from {
           secret_key_ref {
-            name = kubernetes_secret_v1.etl-secret.metadata.0.name
+            name = "etl-secret"
             key = "DBName"
           }
         }
@@ -109,7 +117,7 @@ resource "kubernetes_pod_v1" "postgres" {
         name  = "POSTGRES_USER"
         value_from {
           secret_key_ref {
-            name = kubernetes_secret_v1.etl-secret.metadata.0.name
+            name = "etl-secret"
             key = "DBUser"
           }
         }
@@ -118,7 +126,7 @@ resource "kubernetes_pod_v1" "postgres" {
         name  = "POSTGRES_PASSWORD"
         value_from {
           secret_key_ref {
-            name = kubernetes_secret_v1.etl-secret.metadata.0.name
+            name = "etl-secret"
             key = "DBPassword"
           }
         }
@@ -162,31 +170,3 @@ resource "kubernetes_service" "db-service" {
     }
   }
 }
-
-
-
-# module "postgresql" {
-#   source        = "ballj/postgresql/kubernetes"
-#   version       = "~> 1.2"
-#   namespace     = "etl"
-#   object_prefix = "db"
-#   name          = "db"
-#   image_name    = "bitnami/postgresql"
-#   image_tag     = "14.7.0-7"
-#   pvc_name      = "etl-db-pv-claim"
-#   env_secret    = [
-#     {
-#       name   = "POSTGRES_USER"
-#       secret = "etl-secret"
-#       key    = "DBUser"
-#     },
-#     {
-#       name   = "POSTGRES_PASSWORD"
-#       secret = "etl-secret"
-#       key    = "DBPassword"
-#     },
-#   ]
-#   labels        = {
-#     "app.kubernetes.io/part-of" = "etlapp"
-#   }
-# }
