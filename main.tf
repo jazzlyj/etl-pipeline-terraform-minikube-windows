@@ -77,8 +77,8 @@ resource "kubernetes_pod_v1" "postgres" {
   metadata {
     name       = "etl-db"
     namespace  = kubernetes_namespace_v1.etl-dev.metadata.0.name
-    labels {
-        app = "etl"
+    labels     = {
+      "app"    = "etl"
     }
   }
 
