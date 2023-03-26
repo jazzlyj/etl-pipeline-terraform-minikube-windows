@@ -81,22 +81,18 @@ resource "kubernetes_pod_v1" "postgres" {
       "app"    = "etl"
     }
   }
-
   spec {
     container {
-      image = "postgres/postgres:alpine"
+      image = "postgres"
       name  = "db"
-
       env {
         name  = "POSTGRES_USER"
         value = "postgres"
       }
-
       env {
         name  = "POSTGRES_PASSWORD"
         value = "postgres"
       }
-
       port {
         container_port = 5432
       }
@@ -104,21 +100,25 @@ resource "kubernetes_pod_v1" "postgres" {
   }
 }
 
-# resource "kubernetes_service" "db-service" {
-#   metadata {
-#     name = "db-service"
-#   }
-#   spec {
-#     selector = {
-#       app = "${kubernetes_pod_v1.postgres.metadata.0.labels.app}"
-#     }
-#     session_affinity = "ClientIP"
-#     port {
-#       port        = 5432
-#       target_port = 5432
-#     }
-#   }
-# }
+resource "kubernetes_service" "db-service" {
+  metadata {
+    name       = "etl-db-service"
+    namespace  = kubernetes_namespace_v1.etl-dev.metadata.0.name
+    labels     = {
+      "app"    = "etl"
+    }
+  }
+  spec {
+    selector = {
+      app    = "${kubernetes_pod_v1.postgres.metadata.0.labels.app}"
+    }
+    session_affinity = "ClientIP"
+    port {
+      port        = 5432
+      target_port = 5432
+    }
+  }
+}
 
 
 
