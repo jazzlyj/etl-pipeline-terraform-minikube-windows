@@ -23,9 +23,6 @@ resource "kubernetes_secret_v1" "etl-secret" {
         "DBSchema"   = ""
         "DBName"     = ""
       }
-      # data = {
-      #   "credentials.txt"  = file("${path.cwd}/credentials.txt")
-      # }
     }
 
 
@@ -99,13 +96,6 @@ resource "kubernetes_pod_v1" "postgres" {
         name  = "PGDATA"
         value = "/var/lib/postgresql/data"
       }
-      # works but seems to point directly to the credentials file
-      # env_from {
-      #   secret_ref {
-      #     name = kubernetes_secret_v1.etl-secret.metadata.0.name
-      #   }
-      # }
-      #
       env {
         name  = "POSTGRES_DB"
         value_from {
