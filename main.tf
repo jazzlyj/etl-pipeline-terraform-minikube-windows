@@ -41,6 +41,7 @@ resource "kubernetes_persistent_volume_v1" "etl-db-pv-volume" {
       storage          = "2Gi"
     }
     access_modes       = ["ReadWriteOnce"]
+    # Need this or K8s (minikube) will try to dynamically create a pv for the pvc
     storage_class_name = "manual"
     persistent_volume_source {
       local {
@@ -71,6 +72,7 @@ resource "kubernetes_persistent_volume_claim_v1" "etl-db-pv-claim" {
   }
   spec {
     access_modes       = ["ReadWriteOnce"]
+    # Need this or K8s (minikube) will try to dynamically create a pv for the pvc
     storage_class_name = "manual"
     resources {
       requests         = {
@@ -118,7 +120,7 @@ resource "kubernetes_pod_v1" "postgres" {
         value_from {
           secret_key_ref {
             name = "etl-secret"
-            key = "DBUser"
+            key  = "DBUser"
           }
         }
       }  
@@ -127,7 +129,7 @@ resource "kubernetes_pod_v1" "postgres" {
         value_from {
           secret_key_ref {
             name = "etl-secret"
-            key = "DBPassword"
+            key  = "DBPassword"
           }
         }
       }  
